@@ -25,13 +25,23 @@ function App() {
   const [error, setError] = useState('')
   const fileRef = useRef(null)
 
+  const parseJsonResponse = async (response) => {
+    const text = await response.text()
+    if (!text) return {}
+    try {
+      return JSON.parse(text)
+    } catch {
+      return { detail: text.startsWith('<') ? 'The API returned an HTML page instead of JSON. Check the backend URL.' : text }
+    }
+  }
+
   const request = async (path, options = {}) => {
     const response = await fetch(API + path, {
       ...options,
       headers: { ...(options.headers || {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     })
-    const data = await response.json().catch(() => ({}))
-    if (!response.ok) throw new Error(data.detail || 'Request failed')
+    const data = await parseJsonResponse(response)
+    if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Request failed')
     return data
   }
 
@@ -60,7 +70,7 @@ function App() {
       const data = await fetch(API + endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       }).then(async (response) => {
-        const result = await response.json()
+        const result = await parseJsonResponse(response)
         if (!response.ok) {
           if (typeof result.detail === 'string') throw new Error(result.detail)
           if (Array.isArray(result.detail)) {
