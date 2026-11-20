@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     chroma_dir: str = str(BASE_DIR / "data" / "chroma")
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.5-flash-lite"
     cors_origins: str = "http://localhost:5173"
 
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", extra="ignore")

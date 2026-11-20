@@ -28,19 +28,21 @@ async def generate_answer(question: str, sources: list[dict]) -> str:
         )
         client = genai.Client(api_key=settings.gemini_api_key)
 
-        try:
-            response = await asyncio.wait_for(
-                asyncio.to_thread(
-                    client.models.generate_content,
-                    model=settings.gemini_model,
-                    contents=prompt,
-                ),
-                timeout=12,
-            )
-            if getattr(response, "text", None):
-                return response.text
-        except Exception:
-            pass
+        models_to_try = [settings.gemini_model, 'gemini-2.5-flash']
+        for model_name in dict.fromkeys(models_to_try):
+            try:
+                response = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        client.models.generate_content,
+                        model=model_name,
+                        contents=prompt,
+                    ),
+                    timeout=20,
+                )
+                if getattr(response, "text", None):
+                    return response.text
+            except Exception:
+                continue
 
         return "Gemini is temporarily busy. Relevant PDF context:\n\n" + preview
     except Exception:
